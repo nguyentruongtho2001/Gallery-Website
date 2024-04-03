@@ -1,29 +1,7 @@
-<!-- <template>
-  <div class="container px-8 mb-4">
-    <h2 class="text-2lx font-semibold text-center"> haahhahah</h2>
-    <div class="grid md:grid-cols-6 grid-cols-1">
-      <div class="grid md:grid-start-2 md:col-span-4 shadow-lg">
-        <div class="grid md:grid-cols-2 grid-cols-1">
-            <div class="blog p-6 rounded-lg bg-white max-w-sm mt-4">
-              <form>
-                <div class="form-group mb-6">
-                  <div>
-                    <label class="form-label inline-block mb-2 text-gray-700" for="file-input">Upload Image</label>
-                    <input id="file-input" type="file" class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 border border-solid border-gray-300 rounded"
-                    accept="image/png, image/jpg, image/jpeg" />
-                  </div>
-                </div>
-              </form>
-            </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template> -->
 
 <template>
   <div class="container px-8 mb-4">
-    <h2 class="text-2xl font-semibold text-center"> haahhahah</h2>
+    <h2 class="text-2xl font-semibold text-center mt-4"> Upload image to Cloudinary</h2>
     <div class="flex justify-center">
       <div class="grid md:grid-cols-6 grid-cols-1">
         <div class="grid md:col-start-2 md:col-span-4 shadow-lg">
@@ -33,17 +11,31 @@
                 <div class="form-group mb-6">
                   <div>
                     <label class="form-label inline-block mb-2 text-gray-700" for="file-input">Upload Image</label>
-                    <input id="file-input" type="file" class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 border border-solid border-gray-300 rounded"
-                    accept="image/png, image/jpg, image/jpeg" />
+                    <input id="file-input" type="file"
+                      class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 border border-solid border-gray-300 rounded"
+                      accept="image/png, image/jpg, image/jpeg" @change="handleFileChange($event)" />
                   </div>
                 </div>
-                <button type="submit" @click.prevent="submitUpload" style="width: 100%; padding: 10px 24px; background-color: #34D399; color: #ffffff; font-size: medium; font-size: extra-small; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.1);">
-  Upload
-</button>
+                <button type="submit" @click.prevent="submitUpload"
+                  style="width: 100%; padding: 10px 24px; background-color: #34D399; color: #ffffff; font-size: medium; font-size: extra-small; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.1);">
+                  Upload
+                </button>
 
 
               </form>
+
+              <!-- Image Preview -->
+              <div class="p-4" style="display: flex; flex-direction: column; align-items: center;">
+                <h3 class="text-semibold text-center mb-2" style="display: inline-block; text-align: center;">Image
+                  Preview</h3>
+                  <AlertMessage v-if="error" :message="error" />
+                <img v-if="filePreview" style="width: 50%; display: block;" class="bg-white p-1 border rounded"
+                  :src="filePreview" />
+                  <p v-if="fileSize">{{ fileSize }}</p>
+              </div>
+
             </div>
+
           </div>
         </div>
       </div>
@@ -51,7 +43,60 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref } from 'vue';
+import AlertMessage from '@/components/AlertMessage.vue';
+const file = ref(null);
+const filePreview = ref(null);
+const error = ref(null);
+const fileSize = ref(0.0);
+
+const handleFileChange = (e) => {
+  file.error = null;
+  file.value = e.target.files[0];
+  getImagePreviews(file.value);
+}
+
+ // format image size to human readable unit
+function formatSize(size, decimal = 2){
+  if(size === 0 ) return "0 bytes";
+  const k = 1024;
+  const dm = decimal < 0 ? 0 : decimal;
+  const sizes = ["Bytes","KB", "MB"];
+  const i = Math.floor(Math.log(size) / Math.log(k));
+  return parseFloat((size / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+}
+ 
+  // get img preview
+const getImagePreviews = (image) => {
+  if(/\.(jpe?g|png)$/i.test(image.name) && image.size < 1000000){ 
+// biểu thức chính quy rengular expression 
+//     /\.(jpe?g|png)$/i: Đây là biểu thức chính quy:
+// \.: ký tự dấu chấm.
+// (jpe ? g | png): các chuỗi ký tự "jpg", "jpeg" hoặc "png".Trong đó, e ? biểu thị ký tự "e" có thể xuất hiện 0 hoặc 1 lần(cho phép kiểm tra cả "jpg" và "jpeg").
+//   $: kết thúc chuỗi.
+//     i: cờ biểu thị cho việc không phân biệt chữ hoa chữ thường(case -insensitive).
+    let reader = new FileReader();
+  reader.onloadend = (e) => {
+    filePreview.value = e.target.result;
+    fileSize.value = formatSize(image.size);
+  };
+  reader.readAsDataURL(image);
+  }else {
+    error.value = "File is not support for size  bigger than 1MB";
+    filePreview.value = null;
+    fileSize.value = null;
+  }
+  
+}
+  // Submid upload
+
+  const submitUpload = () => {
+    if(!file.value) return
+    
+  }
+  // Upload img - connect with upload API
+</script>
 
 <style scoped>
 .container {
